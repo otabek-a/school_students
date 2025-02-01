@@ -5,12 +5,26 @@ import os
 
 school = TinyDB('students.json')
 teacher = TinyDB('teachers.json')
-
+chat=TinyDB('id.json')
 Student = Query()
 Teacher = Query()
-
+result={}
+def message(update,context):
+    update.message.reply_text('pls after your password  send me message')
 def start(update: Update, context):
-    reply = [['👨‍🎓 Students 🏫', '🏫 Teachers 📚']]
+    global result
+    chat_id = update.message.chat_id
+    first_name = update.message.chat.first_name
+    existing_user = chat.search(Student.chat_id == chat_id)
+    if not existing_user:
+         chat.insert({'chat_id': chat_id})
+         update.message.reply_text("✅ we are glad to see you")
+    print(chat.all())  
+    
+    
+    reply = [
+        ['👨‍🎓 Students 🏫', '🏫 Teachers 📚'],
+        ['send message all students']]
     key = ReplyKeyboardMarkup(reply, resize_keyboard=True)
     update.message.reply_text("👋 Hello! Welcome to the School Bot 🤖!\nPlease choose an option to proceed: ⬇️", reply_markup=key)
 
@@ -113,8 +127,26 @@ def show_teachers(update, context):
 
 def check_message(update, context):
     text = update.message.text.strip()
+    chat_id = update.message.chat_id
     
-    if text.lower().startswith('teacher'):
+    if text.startswith("*123"): 
+        message_to_send = text[4:].strip() 
+        
+        if not message_to_send:
+            update.message.reply_text("⚠️ Xabar matni bo‘sh bo‘lishi mumkin emas! 📢")
+            return
+        
+        subscribers = chat.all() 
+        
+        for user in subscribers:
+            try:
+                context.bot.send_message(chat_id=user['chat_id'], text=f"📢 Message from admin: {message_to_send}")
+            except Exception as e:
+                print(f"Xatolik: {e}")
+
+        update.message.reply_text("✅ Xabar barcha obunachilarga yuborildi!")
+
+    elif text.lower().startswith('teacher'):
         add_teacher(update, context)
     elif '/' in text:
         register_student(update, context)
@@ -125,7 +157,7 @@ TOKEN = os.environ['TOKEN']
 
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
-
+dispatcher.add_handler(MessageHandler(Filters.text("send message all students"),message))
 dispatcher.add_handler(MessageHandler(Filters.text('🗑️ Clear Teacher List'), clear_teacher))
 dispatcher.add_handler(MessageHandler(Filters.text('🗑️ Clear Student List'), student_clear))
 dispatcher.add_handler(MessageHandler(Filters.text('🔍 Find Teacher'), find_teacher))
