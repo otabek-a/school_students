@@ -19,7 +19,7 @@ def start(update: Update, context):
     if not existing_user:
          chat.insert({'chat_id': chat_id})
          update.message.reply_text("✅ we are glad to see you")
-    print(chat.all())  
+    
     
     
     reply = [
@@ -33,16 +33,16 @@ def student(update, context):
         ['🗑️ Clear Student List'],
         ['➕ Add Students', '📄 Show Students'],
         ['⬅️ Main Menu 🔙'],
-        ['🔍 Find Students'],
+        ['🧐 Find Students'],
     ]
     key = ReplyKeyboardMarkup(reply, resize_keyboard=True)
     update.message.reply_text("👨‍🎓 Hey bro! What would you like to do with students? 🎓", reply_markup=key)
 
 def find_student(update, context):
-    update.message.reply_text("🔎 Please provide any information about the student: 🧑‍🎓")
+    update.message.reply_text("🧐Please provide any information about the student after this  🔍  word ")
 
 def find_teacher(update, context):
-    update.message.reply_text("🔎 Please provide any information about the teacher: 🏫")
+    update.message.reply_text(" 🧐Please provide any information about the teache after this    🔎 " )
 
 def student_clear(update, context):
     school.truncate()
@@ -50,7 +50,7 @@ def student_clear(update, context):
 
 def teach(update, context):
     reply = [
-        ['🔍 Find Teacher'],
+        ['🧐 Find Teacher'],
         ['📄 Show Teachers', '➕ Add Teachers'],
         ['⬅️ Main Menu 🔙'],
         ['🗑️ Clear Teacher List'],
@@ -124,11 +124,49 @@ def show_teachers(update, context):
         text += f"{idx}. {t['name']} {t['Surname']} - 📞 {t['Phone']}\n"
 
     update.message.reply_text(text)
+def search_teacher(update, context):
+    query = update.message.text.replace("🔎", "").strip()  # "🔎" ni olib tashlash
+    if not query:
+        update.message.reply_text("❌ Iltimos, izlash uchun ma'lumot kiriting! 🔍")
+        return
+    
+    results = teacher.search((Teacher.name.matches(query, flags=1)) | (Teacher.Surname.matches(query, flags=1)))
+    
+    if not results:
+        update.message.reply_text(f"❌ i could not find: {query} ")
+        return
+    
+    text = "🔍 list of teacher:\n"
+    for idx, t in enumerate(results, start=1):
+        text += f"{idx}. {t['name']} {t['Surname']} - 📞 {t['Phone']}\n"
+    
+    update.message.reply_text(text)
+def search_student(update, context):
+    query = update.message.text.replace("🔍", "").strip()  # "🔍" belgisini olib tashlash
+    if not query:
+        update.message.reply_text("❌ Iltimos, izlash uchun ma'lumot kiriting! 🔍")
+        return
+    
+    results = school.search((Student.name.matches(query, flags=1)) | (Student.Surname.matches(query, flags=1)))
+    
+    if not results:
+        update.message.reply_text(f"❌ I could not find: {query} ")
+        return
+    
+    text = "🔍 List of students:\n"
+    for idx, student in enumerate(results, start=1):
+        text += f"{idx}. {student['name']} {student['Surname']} - 📞 {student['Phone']}\n"
+    
+    update.message.reply_text(text)
 
+    
 def check_message(update, context):
     text = update.message.text.strip()
     chat_id = update.message.chat_id
-    
+    if '🔍' in text:
+        search_student(update,context)
+    if '🔎' in text:
+        search_teacher(update,context)
     if text.startswith("*123"): 
         message_to_send = text[4:].strip() 
         
@@ -150,27 +188,31 @@ def check_message(update, context):
         add_teacher(update, context)
     elif '/' in text:
         register_student(update, context)
-    else:
-        update.message.reply_text("⚠️ Error: Command not recognized. Please use the menu options. 🚫")
+    
 
 TOKEN = os.environ['TOKEN']
-
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
-dispatcher.add_handler(MessageHandler(Filters.text("send message all students"),message))
-dispatcher.add_handler(MessageHandler(Filters.text('🗑️ Clear Teacher List'), clear_teacher))
-dispatcher.add_handler(MessageHandler(Filters.text('🗑️ Clear Student List'), student_clear))
-dispatcher.add_handler(MessageHandler(Filters.text('🔍 Find Teacher'), find_teacher))
-dispatcher.add_handler(MessageHandler(Filters.text('🔍 Find Students'), find_student))
-dispatcher.add_handler(MessageHandler(Filters.text('⬅️ Main Menu 🔙'), start))
-dispatcher.add_handler(MessageHandler(Filters.text('👨‍🎓 Students 🏫'), student))
-dispatcher.add_handler(MessageHandler(Filters.text('🏫 Teachers 📚'), teach))
-dispatcher.add_handler(CommandHandler('start', start))
-dispatcher.add_handler(MessageHandler(Filters.text('➕ Add Students'), add))
-dispatcher.add_handler(MessageHandler(Filters.text('📄 Show Students'), show_students))
+
+dispatcher.add_handler(MessageHandler(Filters.text('🧐 Find Teacher'), find_teacher))
+
+
+
 dispatcher.add_handler(MessageHandler(Filters.text('➕ Add Teachers'), teacher_request))
 dispatcher.add_handler(MessageHandler(Filters.text('📄 Show Teachers'), show_teachers))
+dispatcher.add_handler(MessageHandler(Filters.text('📄 Show Students'), show_students))
+dispatcher.add_handler(CommandHandler('start', start))
+dispatcher.add_handler(MessageHandler(Filters.text('⬅️ Main Menu 🔙'), start))
+dispatcher.add_handler(MessageHandler(Filters.text('🗑️ Clear Teacher List'), clear_teacher))
+dispatcher.add_handler(MessageHandler(Filters.text('🗑️ Clear Student List'), student_clear))
+dispatcher.add_handler(MessageHandler(Filters.text('➕ Add Students'), add))
+dispatcher.add_handler(MessageHandler(Filters.text('🏫 Teachers 📚'), teach))
+dispatcher.add_handler(MessageHandler(Filters.text('👨‍🎓 Students 🏫'), student))
+dispatcher.add_handler(MessageHandler(Filters.text('🧐 Find Students'), find_student))
 dispatcher.add_handler(MessageHandler(Filters.text, check_message))
+dispatcher.add_handler(MessageHandler(Filters.text("send message all students"),message))
+
+
 
 updater.start_polling()
 updater.idle()
