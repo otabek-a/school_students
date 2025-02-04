@@ -2,10 +2,7 @@ from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 from telegram import Update, ReplyKeyboardMarkup
 from tinydb import TinyDB, Query
 import os
-from message import message_bot
-from student_bot import student,find_student,add,search_student,register_student,show_students
-from clear_data import student_clear,clear_teacher
-from teacher_bot import find_teacher,teach,teacher_request,add_teacher,show_teachers,search_teacher
+data_group=TinyDB('group.json')
 school = TinyDB('students.json')
 teacher = TinyDB('teachers.json')
 
@@ -14,4 +11,19 @@ Student = Query()
 Teacher = Query()
 result={}
 def create_group(update,context):
-    update.message.reply_text('Pls enter information of group T.teacher_name , D.days_of_course , W.time_of_course. For eaxmple: T.Otabek,D.Monday Friday, W.14-16')
+    update.message.reply_text('Pls enter information of group G.group_name,T.teacher_name , D.days_of_course , W.time_of_course. For eaxmple: T.Otabek,D.Monday Friday, W.14-16')
+def clear_group(update,context):
+    data_group.truncate()
+    update.message.reply_text('This list is empty')
+def show_group(update, context):
+    data = data_group.all()
+    if not data:
+        update.message.reply_text("📄 The teacher list is empty. 🏷️")
+        return
+
+    text = "📚 List of teachers:\n"
+    for idx, t in enumerate(data, start=1):
+        text += f"{idx}. {t['name']} {t['Surname']} - 📞 {t['Phone']}\n"
+
+    update.message.reply_text(text)
+    
