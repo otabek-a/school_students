@@ -1,14 +1,15 @@
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
 from telegram import Update, ReplyKeyboardMarkup
 from tinydb import TinyDB, Query
-import os
+from config import Token
+from data_gruop import create_group,clear_group,show_group
 from message import message_bot
 from student_bot import student,find_student,add,search_student,register_student,show_students
 from clear_data import student_clear,clear_teacher
 from teacher_bot import find_teacher,teach,teacher_request,add_teacher,show_teachers,search_teacher
 school = TinyDB('students.json')
 teacher = TinyDB('teachers.json')
-
+data_group=TinyDB('group.json')
 chat=TinyDB('id.json')
 Student = Query()
 Teacher = Query()
@@ -27,7 +28,9 @@ def start(update: Update, context):
     
     reply = [
         ['👨‍🎓 Students 🏫', '🏫 Teachers 📚'],
-        ['send message all students']]
+        ['send message all students'],
+       ['Create group','Clear list of group','show group'], ]
+    
     key = ReplyKeyboardMarkup(reply, resize_keyboard=True)
     update.message.reply_text("👋 Hello! Welcome to the School Bot 🤖!\nPlease choose an option to proceed: ⬇️", reply_markup=key)
 
@@ -43,14 +46,20 @@ def start(update: Update, context):
 
     
 def check_message(update, context):
+    matn=update.message.text.strip()
     text = update.message.text.strip()
     chat_id = update.message.chat_id
+    if 'G.' in text and 'T.' in text and 'D.' in text and 'W.' in text:
+        text=text.replace('T.','',1).replace('D.','',1).replace('W.','',1).replace('G.','',1).split(',')
+        if len(text)==4:
+           data_group.insert({'teacher_name':text[0],'day_course':text[1],'time of course':text[2]})
+           update.message.reply_text(data_group.all())
     if '🔍' in text:
         search_student(update,context)
     if '🔎' in text:
         search_teacher(update,context)
-    if text.startswith("*123"): 
-        message_to_send = text[4:].strip() 
+    if matn.startswith("*123"): 
+        message_to_send = matn[4:].strip() 
         
         if not message_to_send:
             update.message.reply_text("⚠️ Xabar matni bo‘sh bo‘lishi mumkin emas! 📢")
@@ -66,20 +75,20 @@ def check_message(update, context):
 
         update.message.reply_text("✅ message is sended to all users!")
 
-    elif text.lower().startswith('teacher'):
+    elif matn.lower().startswith('teacher'):
         add_teacher(update, context)
-    elif '/' in text:
+    elif  'T/' not in text and 'D/' not  in text and 'W/' not in text and  '/' in matn:
         register_student(update, context)
     
 
-TOKEN = os.environ['TOKEN']
+TOKEN = Token
 updater = Updater(token=TOKEN, use_context=True)
 dispatcher = updater.dispatcher
 
 dispatcher.add_handler(MessageHandler(Filters.text('🧐 Find Teacher'), find_teacher))
-
-
-
+dispatcher.add_handler(MessageHandler(Filters.text('show group'),show_group))
+dispatcher.add_handler(MessageHandler(Filters.text("Create group"),create_group))
+dispatcher.add_handler(MessageHandler(Filters.text('Clear list of group'),clear_group))
 dispatcher.add_handler(MessageHandler(Filters.text('➕ Add Teachers'), teacher_request))
 dispatcher.add_handler(MessageHandler(Filters.text('📄 Show Teachers'), show_teachers))
 dispatcher.add_handler(MessageHandler(Filters.text('📄 Show Students'), show_students))
