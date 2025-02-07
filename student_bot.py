@@ -27,7 +27,8 @@ def add(update, context):
 
 
 def register_student(update, context):
-    matn = update.message.text.split('/')
+    matn = update.message.text.lower()
+    matn = update.message.text.lower().split('/')
     
     if len(matn) != 3:
         update.message.reply_text("⚠️ Error: Incomplete student information! Use this format:\n👤 name/surname/phone")
@@ -60,7 +61,7 @@ def show_students(update, context):
 
 
 def search_student(update, context):
-    query = update.message.text.replace("🔍", "").strip()  # "🔍" belgisini olib tashlash
+    query = update.message.text.replace("🔍", "").strip().lower()  # "🔍" belgisini olib tashlash
     if not query:
         update.message.reply_text("❌ Iltimos, izlash uchun ma'lumot kiriting! 🔍")
         return
@@ -68,7 +69,7 @@ def search_student(update, context):
     results = school.search((Student.name.matches(query, flags=1)) | (Student.Surname.matches(query, flags=1)))
     
     if not results:
-        update.message.reply_text(f"❌ I could not find: {query} ")
+        update.message.reply_text(f"❌ I could not find it in STUDENTS list😓: {query} ")
         return
     
     text = "🔍 List of students:\n"
