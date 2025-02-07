@@ -52,9 +52,11 @@ def show_students(update, context):
         update.message.reply_text("📄 The student list is empty. 🏷️")
         return
     
-    text = "📚 List of students:\n"
+    text = "📚 List of Students:\n\n"
     for idx, student in enumerate(students, start=1):
-        text += f"{idx}. {student['name']} {student['Surname']} - 📞 {student['Phone']}\n"
+        text += f"{idx}. 👤 {student['name']} {student['Surname']}\n"
+        text += f"   📞 Phone: {student['Phone']}\n"
+        text += "--------------------------\n"
     
     update.message.reply_text(text)
 

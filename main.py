@@ -40,19 +40,19 @@ def check_message(update, context):
     chat_id = update.message.chat_id
     if matn.startswith('teacher/'):
         add_teacher(update,context)
-    if matn.startswith('🔎'):
+    elif matn.startswith('🔎'):
         search_teacher(update,context)
-    if matn.startswith('🔍'):
+    elif matn.startswith('🔍'):
         search_student(update,context)
-    if matn.startswith('group.'):
+    elif matn.startswith('group.'):
         register_group(update,context)
-    if '/' in matn:
+    elif '/' in matn:
         register_student(update,context)
 
     
     
 
-    if matn.startswith('*123'):
+    elif matn.startswith('*123'):
         message_to_send = matn[4:].strip()
         if not message_to_send:
             update.message.reply_text("⚠️ Message cannot be empty! 📢")

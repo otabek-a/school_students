@@ -47,11 +47,14 @@ def show_teachers(update, context):
         update.message.reply_text("📄 The teacher list is empty. 🏷️")
         return
 
-    text = "📚 List of teachers:\n"
+    text = "📚 List of Teachers:\n\n"
     for idx, t in enumerate(teachers, start=1):
-        text += f"{idx}. {t['name']} {t['Surname']} - 📞 {t['Phone']}\n"
+        text += f"{idx}. 👨‍🏫 {t['name']} {t['Surname']}\n"
+        text += f"   📞 Phone: {t['Phone']}\n"
+        text += "--------------------------\n"
 
     update.message.reply_text(text)
+
 def search_teacher(update, context):
     query = update.message.text.replace("🔎", "").strip().lower()  # "🔎" ni olib tashlash
     if not query:
